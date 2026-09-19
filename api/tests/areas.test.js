@@ -4,7 +4,7 @@ const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 const request = require('supertest');
 const { app } = require('../server');
-const { ADMIN_SECRET, getTestApiKey, teardown } = require('./helpers');
+const { getTestApiKey, teardown } = require('./helpers');
 const { deleteArea } = require('../service/areaService');
 
 describe('Areas Management & Spatial Lookups API', () => {
@@ -27,7 +27,6 @@ describe('Areas Management & Spatial Lookups API', () => {
     const res = await request(app)
       .post('/api/v1/areas')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         areaId: testAreaId,
         name: 'Test Area Center',
@@ -63,6 +62,27 @@ describe('Areas Management & Spatial Lookups API', () => {
     assert.strictEqual(res.body.error, 'NOT_FOUND');
   });
 
+  test('POST /api/v1/areas/batch returns multiple areas in a single call (200)', async () => {
+    const res = await request(app)
+      .post('/api/v1/areas/batch')
+      .set('X-API-Key', apiKey)
+      .send({ areaIds: [testAreaId, 'UNKNOWN_NONEXISTENT_XYZ'] });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.count, 1);
+    assert.strictEqual(res.body.areas[0].areaId, testAreaId);
+  });
+
+  test('GET /api/v1/areas/batch?ids=... supports query params (200)', async () => {
+    const res = await request(app)
+      .get(`/api/v1/areas/batch?ids=${testAreaId}`)
+      .set('X-API-Key', apiKey);
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.body.count, 1);
+    assert.strictEqual(res.body.areas[0].areaId, testAreaId);
+  });
+
   test('GET /api/v1/areas/lookup/coordinates matches area within 1 km via geohash (200)', async () => {
     // Query with ~50m offset from (25.5000, 85.0000): 25.5003, 85.0003
     const resNear = await request(app)
@@ -87,7 +107,6 @@ describe('Areas Management & Spatial Lookups API', () => {
     const res = await request(app)
       .patch('/api/v1/areas/aqi')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         latitude: 25.5002,
         longitude: 85.0002,
@@ -110,7 +129,6 @@ describe('Areas Management & Spatial Lookups API', () => {
     const res = await request(app)
       .post('/api/v1/areas/aqi/bulk')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         updates: [
           { latitude: 28.6139, longitude: 77.2090, aqi: 175 },
@@ -126,7 +144,6 @@ describe('Areas Management & Spatial Lookups API', () => {
     const res = await request(app)
       .patch(`/api/v1/areas/${testAreaId}`)
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         name: 'Relocated Area',
         latitude: 28.6315,
@@ -142,7 +159,6 @@ describe('Areas Management & Spatial Lookups API', () => {
     const res = await request(app)
       .post('/api/v1/areas/bulk')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         areas: [
           { areaId: 'TEST_BULK_A', name: 'Bulk Node A', latitude: 28.50, longitude: 77.10 },
@@ -157,8 +173,7 @@ describe('Areas Management & Spatial Lookups API', () => {
   test('DELETE /api/v1/areas/:areaId removes the area (200)', async () => {
     const res = await request(app)
       .delete(`/api/v1/areas/${testAreaId}`)
-      .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET);
+      .set('X-API-Key', apiKey);
 
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.message, `Area '${testAreaId}' deleted.`);

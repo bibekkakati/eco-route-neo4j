@@ -7,7 +7,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 
-const authRouter = require('./router/authRouter');
 const areaRouter = require('./router/areaRouter');
 const routeRouter = require('./router/routeRouter');
 const roadRouter = require('./router/roadRouter');
@@ -25,7 +24,7 @@ app.use(helmet());
 app.use(cors({
     origin: process.env.CORS_ORIGIN || '*',
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'X-API-Key', 'X-Admin-Secret'],
+    allowedHeaders: ['Content-Type', 'X-API-Key'],
 }));
 app.use(express.json({ limit: '10kb' }));
 
@@ -45,7 +44,6 @@ app.get('/health', (_req, res) => {
 });
 
 // ── API routes ────────────────────────────────────────────────────────────────
-app.use(`${API_PREFIX}/auth`, authRouter);
 app.use(`${API_PREFIX}/areas`, areaRouter);
 app.use(`${API_PREFIX}/roads`, roadRouter);
 app.use(`${API_PREFIX}/routes`, routeRouter);
@@ -68,13 +66,14 @@ async function start() {
         await verifyConnectivity();
 
         app.listen(PORT, () => {
-            console.log(`Eco-Route API running on http://localhost:${PORT}`);
+            console.log(`Eco-Route Finder API running on http://localhost:${PORT}`);
             console.log(`API prefix: ${API_PREFIX}`);
             console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
-            // Start background AQI sync worker (runs every 30s: Green -> Red -> Yellow)
+            // Start background AQI sync worker for Urban Anchors (default 5s, configurable)
             if (process.env.ENABLE_AQI_WORKER !== 'false') {
-                startAqiWorker(30000);
+                const intervalMs = process.env.AQI_WORKER_INTERVAL_MS ? parseInt(process.env.AQI_WORKER_INTERVAL_MS, 10) : 5000;
+                startAqiWorker(intervalMs);
             }
         });
     } catch (err) {
@@ -85,18 +84,18 @@ async function start() {
 
 // ── Graceful shutdown ─────────────────────────────────────────────────────────
 async function shutdown(signal) {
-  console.log(`${signal} received. Shutting down gracefully…`);
-  stopAqiWorker();
-  const { closeDriver } = require('./infra/neo4j');
-  await Promise.allSettled([closeDriver(), closeRedis()]);
-  process.exit(0);
+    console.log(`${signal} received. Shutting down gracefully…`);
+    stopAqiWorker();
+    const { closeDriver } = require('./infra/neo4j');
+    await Promise.allSettled([closeDriver(), closeRedis()]);
+    process.exit(0);
 }
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('SIGINT', () => shutdown('SIGINT'));
 
 if (require.main === module) {
-  start();
+    start();
 }
 
 module.exports = { app, start, shutdown };

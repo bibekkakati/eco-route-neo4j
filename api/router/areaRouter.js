@@ -1,11 +1,12 @@
 'use strict';
 
 const { Router } = require('express');
-const { authenticate, adminAuth } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const { validate, z } = require('../middleware/validate');
 const {
   listAreas,
   getArea,
+  getAreasBatch,
   getAreaByCoords,
   addArea,
   addAreasBulk,
@@ -77,25 +78,33 @@ router.get('/search', searchAreas);
  */
 router.get('/lookup/coordinates', getAreaByCoords);
 
-// ── Write routes (admin only) ─────────────────────────────────────────────────
+/**
+ * POST /api/v1/areas/batch
+ * GET /api/v1/areas/batch?ids=id1,id2
+ * Batch-fetch multiple area nodes by an array of areaIds in a single request.
+ */
+router.post('/batch', getAreasBatch);
+router.get('/batch', getAreasBatch);
+
+// ── Write routes ─────────────────────────────────────────────────────────────
 
 /**
  * POST /api/v1/areas
  * Create or update a single area node (auto-computes precision-6 geohash).
  */
-router.post('/', adminAuth, validate(areaSchema), addArea);
+router.post('/', validate(areaSchema), addArea);
 
 /**
  * POST /api/v1/areas/bulk
  * Bulk-create/upsert area nodes from a JSON array (auto-computes geohashes).
  */
-router.post('/bulk', adminAuth, validate(bulkSchema), addAreasBulk);
+router.post('/bulk', validate(bulkSchema), addAreasBulk);
 
 /**
  * POST /api/v1/areas/sync-index
  * Re-index all Neo4j areas into Redis.
  */
-router.post('/sync-index', adminAuth, syncIndex);
+router.post('/sync-index', syncIndex);
 
 /**
  * PATCH /api/v1/areas/aqi
@@ -103,8 +112,8 @@ router.post('/sync-index', adminAuth, syncIndex);
  * Update an area's AQI by coordinates using geohash matching (~1 km radius).
  * Body: { latitude, longitude, aqi }
  */
-router.patch('/aqi', adminAuth, validate(aqiByCoordsSchema), patchAreaAqiByCoords);
-router.patch('/aqi/by-coordinates', adminAuth, validate(aqiByCoordsSchema), patchAreaAqiByCoords);
+router.patch('/aqi', validate(aqiByCoordsSchema), patchAreaAqiByCoords);
+router.patch('/aqi/by-coordinates', validate(aqiByCoordsSchema), patchAreaAqiByCoords);
 
 /**
  * POST /api/v1/areas/aqi/bulk
@@ -112,8 +121,8 @@ router.patch('/aqi/by-coordinates', adminAuth, validate(aqiByCoordsSchema), patc
  * Bulk-update AQI values by coordinates using geohash matching (~1 km radius).
  * Body: { updates: [{ latitude, longitude, aqi }, ...] }
  */
-router.post('/aqi/bulk', adminAuth, validate(bulkAqiByCoordsSchema), syncAqiByCoordsBulk);
-router.post('/aqi/bulk-coordinates', adminAuth, validate(bulkAqiByCoordsSchema), syncAqiByCoordsBulk);
+router.post('/aqi/bulk', validate(bulkAqiByCoordsSchema), syncAqiByCoordsBulk);
+router.post('/aqi/bulk-coordinates', validate(bulkAqiByCoordsSchema), syncAqiByCoordsBulk);
 
 // ── Parameterised routes ──────────────────────────────────────────────────────
 
@@ -127,12 +136,12 @@ router.get('/:areaId', getArea);
  * PATCH /api/v1/areas/:areaId
  * Update area details (auto-recalculates geohash if coordinates change).
  */
-router.patch('/:areaId', adminAuth, validate(areaUpdateSchema), patchArea);
+router.patch('/:areaId', validate(areaUpdateSchema), patchArea);
 
 /**
  * DELETE /api/v1/areas/:areaId
  * Delete an area node and all its road relationships.
  */
-router.delete('/:areaId', adminAuth, removeArea);
+router.delete('/:areaId', removeArea);
 
 module.exports = router;

@@ -44,29 +44,4 @@ async function authenticate(req, res, next) {
   }
 }
 
-/**
- * Admin secret middleware — used only for key management endpoints.
- * Reads `X-Admin-Secret` and compares with ADMIN_SECRET env var.
- */
-function adminAuth(req, res, next) {
-  const secret = req.headers['x-admin-secret'];
-  const expected = process.env.ADMIN_SECRET;
-
-  if (!expected) {
-    return res.status(500).json({
-      error: 'SERVER_MISCONFIGURED',
-      message: 'ADMIN_SECRET is not set.',
-    });
-  }
-
-  if (!secret || secret !== expected) {
-    return res.status(401).json({
-      error: 'UNAUTHORIZED',
-      message: 'Invalid or missing X-Admin-Secret header.',
-    });
-  }
-
-  next();
-}
-
-module.exports = { authenticate, adminAuth };
+module.exports = { authenticate };

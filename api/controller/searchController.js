@@ -37,7 +37,6 @@ async function searchAreas(req, res, next) {
 
 /**
  * POST /api/v1/areas/sync-index
- * (Admin only — requires X-Admin-Secret)
  *
  * Re-indexes all areas from Neo4j into Redis.
  * Useful after bulk area data updates.

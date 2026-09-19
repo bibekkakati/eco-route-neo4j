@@ -4,7 +4,7 @@ const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 const request = require('supertest');
 const { app } = require('../server');
-const { ADMIN_SECRET, getTestApiKey, teardown } = require('./helpers');
+const { getTestApiKey, teardown } = require('./helpers');
 const { runWriteQuery } = require('../infra/neo4j');
 
 describe('Routes & Eco-Pathfinding API', () => {
@@ -88,7 +88,6 @@ describe('Routes & Eco-Pathfinding API', () => {
     await request(app)
       .patch('/api/v1/areas/aqi')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         latitude: 28.6446,
         longitude: 77.1909,

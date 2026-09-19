@@ -4,7 +4,7 @@ const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
 const request = require('supertest');
 const { app } = require('../server');
-const { ADMIN_SECRET, getTestApiKey, teardown } = require('./helpers');
+const { getTestApiKey, teardown } = require('./helpers');
 const { createArea, deleteArea } = require('../service/areaService');
 
 describe('Roads Management API', () => {
@@ -30,7 +30,6 @@ describe('Roads Management API', () => {
     const res = await request(app)
       .post('/api/v1/roads')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         fromAreaId: nodeA,
         toAreaId: nodeB,
@@ -68,7 +67,6 @@ describe('Roads Management API', () => {
     const res = await request(app)
       .delete('/api/v1/roads')
       .set('X-API-Key', apiKey)
-      .set('X-Admin-Secret', ADMIN_SECRET)
       .send({
         fromAreaId: nodeA,
         toAreaId: nodeB,

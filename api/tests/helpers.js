@@ -9,8 +9,6 @@ const { closeRedis } = require('../infra/redis');
 // Run migrations on require
 require('../db/migrate');
 
-const ADMIN_SECRET = process.env.ADMIN_SECRET || 'admin-3456khd6779-456hj77';
-
 let _cachedTestApiKey = null;
 
 /**
@@ -31,7 +29,6 @@ async function teardown() {
 }
 
 module.exports = {
-  ADMIN_SECRET,
   getTestApiKey,
   teardown,
 };

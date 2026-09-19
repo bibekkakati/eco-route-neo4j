@@ -46,6 +46,32 @@ async function getAreaById(areaId) {
 }
 
 /**
+ * Fetch multiple areas by an array of areaIds in a single query.
+ *
+ * @param {Array<string|number>} areaIds
+ * @returns {Promise<Array<object>>}
+ */
+async function getAreasByIds(areaIds) {
+  if (!areaIds || !areaIds.length) return [];
+  const records = await runQuery(
+    `
+    MATCH (a:Area)
+    WHERE a.areaId IN $areaIds
+    RETURN
+      a.areaId    AS areaId,
+      a.name      AS name,
+      a.latitude  AS latitude,
+      a.longitude AS longitude,
+      a.aqi       AS aqi,
+      a.geohash   AS geohash
+    `,
+    { areaIds }
+  );
+
+  return records.map(toArea);
+}
+
+/**
  * Find an area node by coordinates using geohash (~1 km radius matching).
  *
  * Strategy:
@@ -328,6 +354,7 @@ async function deleteArea(areaId) {
 module.exports = {
   getAreas,
   getAreaById,
+  getAreasByIds,
   findAreaByCoordinates,
   createArea,
   createAreasBulk,

@@ -3,6 +3,7 @@
 const {
   getAreas,
   getAreaById,
+  getAreasByIds,
   findAreaByCoordinates,
   createArea,
   createAreasBulk,
@@ -20,6 +21,32 @@ const { indexAreas, addAreasToIndex } = require('../service/searchService');
 async function listAreas(req, res, next) {
   try {
     const areas = await getAreas();
+    return res.json({ count: areas.length, areas });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/v1/areas/batch
+ * GET /api/v1/areas/batch?ids=id1,id2
+ * Fetch multiple area nodes by an array of areaIds in a single request.
+ */
+async function getAreasBatch(req, res, next) {
+  try {
+    let areaIds = req.body?.areaIds;
+    if (!areaIds && req.query.ids) {
+      areaIds = req.query.ids.split(',').map((s) => s.trim()).filter(Boolean);
+    }
+
+    if (!Array.isArray(areaIds) || areaIds.length === 0) {
+      return res.status(400).json({
+        error: 'VALIDATION_ERROR',
+        message: 'areaIds array in JSON body or comma-separated ids in query param is required.',
+      });
+    }
+
+    const areas = await getAreasByIds(areaIds);
     return res.json({ count: areas.length, areas });
   } catch (err) {
     next(err);
@@ -226,6 +253,7 @@ async function removeArea(req, res, next) {
 module.exports = {
   listAreas,
   getArea,
+  getAreasBatch,
   getAreaByCoords,
   addArea,
   addAreasBulk,

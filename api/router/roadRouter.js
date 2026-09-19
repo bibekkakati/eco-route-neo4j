@@ -1,7 +1,7 @@
 'use strict';
 
 const { Router } = require('express');
-const { authenticate, adminAuth } = require('../middleware/auth');
+const { authenticate } = require('../middleware/auth');
 const { validate, z } = require('../middleware/validate');
 const { addRoad, addRoadsBulk, listRoads, listRoadsByArea, removeRoad } = require('../controller/roadController');
 
@@ -41,24 +41,24 @@ router.get('/', listRoads);
  */
 router.get('/:areaId', listRoadsByArea);
 
-// ── Write routes (admin only) ─────────────────────────────────────────────────
+// ── Write routes ─────────────────────────────────────────────────────────────
 
 /**
  * POST /api/v1/roads
  * Create or update a single road between two areas.
  */
-router.post('/', adminAuth, validate(roadSchema), addRoad);
+router.post('/', validate(roadSchema), addRoad);
 
 /**
  * POST /api/v1/roads/bulk
  * Bulk-create/upsert roads from a JSON array.
  */
-router.post('/bulk', adminAuth, validate(bulkRoadSchema), addRoadsBulk);
+router.post('/bulk', validate(bulkRoadSchema), addRoadsBulk);
 
 /**
  * DELETE /api/v1/roads
  * Delete a road between two areas.
  */
-router.delete('/', adminAuth, validate(deleteRoadSchema), removeRoad);
+router.delete('/', validate(deleteRoadSchema), removeRoad);
 
 module.exports = router;

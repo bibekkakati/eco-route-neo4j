@@ -1,10 +1,14 @@
+# EcoRoute Finder
+
+EcoRoute Finder is a logistics dashboard that combines road distance, neighborhood AQI, and graph routing to recommend safer delivery paths across Delhi NCR.
+
 # Problem
 
 During the winter months, air quality in Delhi, NCR heavily impacts logitics and delivery services. Companies need to dynamically route their delivery fleets not just based on traffic, but to avoid sending unmasked riders into micro-zones with severe AQI spikes, while still hitting their delivery windows.
 
 # The challenge
 
-To build a "Eco-Route" logistics dashboard. The graph should map neighborhoods as nodes (1km radius) connected by roads (Relationships weighted by distance). The nodes AQI will be updated every few minutes from AQI syncing worker. The graph should be able to find the shortest path between two nodes based on the AQI and distance.
+To build a "EcoRoute Finder" logistics dashboard. The graph should map neighborhoods as nodes (1km radius) connected by roads (Relationships weighted by distance). The nodes AQI will be updated every few minutes from AQI syncing worker. The graph should be able to find the shortest path between two nodes based on the AQI and distance.
 
 # Tech Stack
 
@@ -24,4 +28,4 @@ To build a "Eco-Route" logistics dashboard. The graph should map neighborhoods a
 - Get top 5 paths with least AQI, distance
 - Path length should not be more than 30% of the shortest path (variation is configurable on API)
 - AQI should be less than 400. If it is more, return the path with a flag "AQI_HIGH".
-  <!-- - Recalculate the path dynamically if AQI data change for considered nodes/path. -->
+- Recalculate the path dynamically if AQI data change for considered nodes/path.
