@@ -1,31 +1,62 @@
 # EcoRoute Finder
 
-EcoRoute Finder is a logistics dashboard that combines road distance, neighborhood AQI, and graph routing to recommend safer delivery paths across Delhi NCR.
+## Project Description
 
-# Problem
+EcoRoute Finder is a logistics dashboard that identifies delivery routes using road distance and neighborhood air quality data.
 
-During the winter months, air quality in Delhi, NCR heavily impacts logitics and delivery services. Companies need to dynamically route their delivery fleets not just based on traffic, but to avoid sending unmasked riders into micro-zones with severe AQI spikes, while still hitting their delivery windows.
+## What It Does
 
-# The challenge
+The application returns the top K shortest viable routes while prioritizing paths with an AQI below 400. It helps delivery operators avoid areas with hazardous air quality.
 
-To build a "EcoRoute Finder" logistics dashboard. The graph should map neighborhoods as nodes (1km radius) connected by roads (Relationships weighted by distance). The nodes AQI will be updated every few minutes from AQI syncing worker. The graph should be able to find the shortest path between two nodes based on the AQI and distance.
+## How It Works
 
-# Tech Stack
+The system models neighborhoods as graph nodes and roads as distance-weighted connections. It evaluates route distance and AQI, then polls every five seconds for changes. If a node on the selected route reaches an AQI of 400 or higher, the system recalculates the route.
 
-- Express.js
-- Neo4j
-- React.js
+If every available route exceeds the AQI threshold, the system reports that no optimal safe route is available.
 
-# Dataset
+## Data Model
 
-- List of areas as 1km radius circle, with centroid (latitude, longitude) as geohash
-- Roads between the areas ( Relationships weighted by distance)
-- AQI data for latitude and longitude
-- Store the list of areas as JSON array (areaId: num, latitude: num, longitude: num) to render in the UI dashboard
+Seed data is stored in the `api/seeding` folder as JSON arrays. Each area is represented as a graph node, and each road is represented as a relationship between nodes with distance as its weight.
 
-# Functionality/Flow
+## Previews
 
-- Get top 5 paths with least AQI, distance
-- Path length should not be more than 30% of the shortest path (variation is configurable on API)
-- AQI should be less than 400. If it is more, return the path with a flag "AQI_HIGH".
-- Recalculate the path dynamically if AQI data change for considered nodes/path.
+The React dashboard provides location selection, route recommendations, AQI status, and map-based route visualization.
+
+![Route selection preview](previews/ss-1.png)
+
+![Route recommendations preview](previews/ss-2.png)
+
+## How to Run
+
+Install dependencies and start the API:
+
+```bash
+cd api
+npm install
+npm run migrate
+npm run seed
+npm start
+```
+
+In a second terminal, start the web application:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+## Manual Testing
+
+1. Open the web application in a browser.
+2. Select `Connaught` as the origin and `DLF Phase` as the destination.
+3. Click **Find Optimal Path**.
+4. Confirm that the system displays the top K eligible routes.
+5. Verify that the system polls for AQI changes every five seconds and reroutes when a considered node reaches AQI 400 or higher.
+
+## Automated Tests
+
+```bash
+cd api
+npm test
+```
