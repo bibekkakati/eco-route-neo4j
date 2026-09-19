@@ -61,7 +61,7 @@ export default function Dashboard() {
       });
 
       if (!data.paths || data.paths.length === 0) {
-        setError('Notice: All routes AQI has gone above 400');
+        // setError('No optimal routes found with AQI < 400');
         // setRouteData(null);
         // setIsPolling(false);
       } else {
